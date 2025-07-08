@@ -1,0 +1,46 @@
+# Terraform state
+*.tfstate
+*.tfstate.backup
+*.tfstate.*
+
+# Crash log
+crash.log
+
+# Terraform plan files
+*.tfplan
+
+# Terraform override files
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Sensitive provider credentials
+.terraformrc
+terraform.rc
+
+# Directory where Terraform keeps plugins and providers
+.terraform/
+
+# Editor swap/backup files
+*~
+*.swp
+*.bak
+
+# VS Code settings (optional)
+.vscode/
+
+# macOS system files
+.DS_Store
+
+# AWS credentials/config (if present)
+*.pem
+*.key
+.aws/
+
+# Ansible cache (if used alongside Terraform)
+*.retry
+.cache/
+
