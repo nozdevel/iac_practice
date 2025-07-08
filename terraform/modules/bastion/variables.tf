@@ -1,3 +1,7 @@
+variable "name_prefix" {
+  type = string
+}
+
 variable "vpc_id" {
   description = "VPC ID to launch Bastion host in"
   type        = string

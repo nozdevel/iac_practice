@@ -66,12 +66,12 @@ resource "aws_network_acl_rule" "private_in_allow_vpc" {
   cidr_block     = var.vpc_cidr_block
 }
 
-# ✅ Inboundルール: Ephemeralポート (TCP 1024-65535) を許可
+# Inboundルール: Ephemeralポート (TCP 1024-65535) を許可
 resource "aws_network_acl_rule" "private_in_allow_ephemeral" {
   network_acl_id = aws_network_acl.private.id
   rule_number    = 110
   egress         = false
-  protocol       = "6" # TCP
+  protocol       = "-1"
   rule_action    = "allow"
   cidr_block     = "0.0.0.0/0"
   from_port      = 1024
@@ -84,16 +84,6 @@ resource "aws_network_acl_rule" "private_out_allow_all" {
   rule_number    = 100
   egress         = true
   protocol       = "-1"
-  rule_action    = "allow"
-  cidr_block     = "0.0.0.0/0"
-}
-
-# Outbound: ICMP（ping）許可を明示的に追加
-resource "aws_network_acl_rule" "private_out_allow_icmp" {
-  network_acl_id = aws_network_acl.private.id
-  rule_number    = 110
-  egress         = true
-  protocol       = "1"
   rule_action    = "allow"
   cidr_block     = "0.0.0.0/0"
 }

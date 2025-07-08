@@ -43,13 +43,6 @@ resource "aws_security_group" "nat_sg" {
   name        = "${var.name_prefix}-nat-sg"
   description = "Allow internal access and outbound internet for NAT"
   vpc_id      = var.vpc_id
-  
-  ingress {
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = [var.vpc_cidr_block]
-  }
 
   ingress {
     from_port   = 0
