@@ -18,13 +18,13 @@ module "vpc" {
 }
 
 module "bastion" {
-  source      = "../modules/bastion"
+  source      = "../modules/bastion_ansible"
   name_prefix = "dev"
   ami_id      = "ami-03598bf9d15814511" # AL2023
   vpc_id      = module.vpc.vpc_id
   subnet_id   = module.vpc.public_subnet_ids[0]
   key_name    = var.key_name
-  own_ip      = var.own_ip
+  sg_id       = module.sg.bastion_sg_id
 }
 
 module "nat" {
@@ -56,7 +56,7 @@ module "sg" {
   vpc_cidr_block = module.vpc.vpc_cidr_block
   name_prefix    = "dev"
   nlb_cidr_block = "10.0.0.0/16" # NLBがあるサブネットに合わせて調整
-  bastion_sg_id  = module.bastion.bastion_security_group_id
+  bastion_src_ip = var.bastion_src_ip
 }
 
 module "rtsp_asg" {

@@ -14,6 +14,6 @@ variable "nlb_cidr_block" {
   type = string
 }
 
-variable "bastion_sg_id" {
+variable "bastion_src_ip" {
   type = string
 }

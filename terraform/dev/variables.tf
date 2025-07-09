@@ -8,6 +8,7 @@ variable "key_name" {
   type        = string
 }
 
-variable "own_ip" {
+variable "bastion_src_ip" {
+  description = "The source access cidr of bastion"
   type = string
 }

@@ -22,11 +22,11 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
+variable "sg_id" {
+  type = string
+}
+
 variable "key_name" {
   description = "Key pair name for SSH"
   type        = string
-}
-
-variable "own_ip" {
-  type = string
 }

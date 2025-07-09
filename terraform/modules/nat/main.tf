@@ -9,10 +9,6 @@ resource "aws_instance" "this" {
   iam_instance_profile        = var.instance_profile_name
   key_name                    = var.key_name
 
-
-  #user_data = templatefile("${path.module}/user_data.sh.tpl", {
-  #  eip_public_ip = aws_eip.this.public_ip
-  #})
   user_data = templatefile("${path.module}/user_data.sh.tpl", {})
 
   tags = {
