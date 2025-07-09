@@ -3,6 +3,24 @@ provider "aws" {
   profile = var.aws_profile
 }
 
+module "github_oidc" {
+  source      = "../modules/github_oidc_role"
+  github_repo = var.github_repo
+  role_name   = "dev-github-actions-role"
+  assume_branch = "main"
+
+  policy_statements = [
+    {
+      Effect   = "Allow"
+      Action   = [
+        "ec2:DescribeInstances",
+      ]
+      Resource = ["*"]
+    }
+  ]
+}
+
+
 module "iam" {
   source      = "../modules/iam"
   name_prefix = "dev"

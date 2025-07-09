@@ -9,6 +9,6 @@ resource "aws_instance" "bastion" {
   user_data = templatefile("${path.module}/user_data.sh.tpl", {})
 
   tags = {
-    Name = "${var.name_prefix}-bastion-host"
+    Name = "${var.name_prefix}-bastion-ansible"
   }
 }
