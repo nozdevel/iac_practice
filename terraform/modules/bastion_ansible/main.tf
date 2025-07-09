@@ -5,7 +5,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [var.sg_id]
   key_name                    = var.key_name
   associate_public_ip_address = true
-  
+
   user_data = templatefile("${path.module}/user_data.sh.tpl", {})
 
   tags = {

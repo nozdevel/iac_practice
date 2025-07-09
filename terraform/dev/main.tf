@@ -4,15 +4,15 @@ provider "aws" {
 }
 
 module "github_oidc" {
-  source      = "../modules/github_oidc_role"
-  github_repo = var.github_repo
-  role_name   = "dev-github-actions-role"
+  source        = "../modules/github_oidc_role"
+  github_repo   = var.github_repo
+  role_name     = "dev-github-actions-role"
   assume_branch = "main"
 
   policy_statements = [
     {
-      Effect   = "Allow"
-      Action   = [
+      Effect = "Allow"
+      Action = [
         "ec2:DescribeInstances",
       ]
       Resource = ["*"]

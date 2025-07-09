@@ -10,7 +10,7 @@ variable "key_name" {
 
 variable "bastion_src_ip" {
   description = "The source access cidr of bastion"
-  type = string
+  type        = string
 }
 
 variable "github_repo" {

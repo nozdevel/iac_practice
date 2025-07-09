@@ -18,7 +18,7 @@ variable "assume_branch" {
 variable "policy_statements" {
   description = "List of IAM policy statements (JSON objects) to attach to the role"
   type        = list(any)
-  default     = [
+  default = [
     {
       Effect   = "Allow"
       Action   = ["ec2:DescribeInstances"]
