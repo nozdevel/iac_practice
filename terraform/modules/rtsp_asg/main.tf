@@ -46,3 +46,19 @@ resource "aws_autoscaling_group" "this" {
     propagate_at_launch = true
   }
 }
+
+resource "aws_autoscaling_policy" "target_tracking" {
+  name                      = "target-tracking-policy"
+  policy_type               = "TargetTrackingScaling"
+  autoscaling_group_name    = aws_autoscaling_group.this.name
+  estimated_instance_warmup = 300
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value     = 60.0
+    disable_scale_in = false
+  }
+}
