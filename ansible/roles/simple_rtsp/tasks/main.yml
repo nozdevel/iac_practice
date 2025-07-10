@@ -65,3 +65,36 @@
     name: mediamtx
     enabled: yes
     state: started
+
+- name: awscliをインストール
+  package:
+    name: awscli
+    state: present
+
+- name: S3から動画ファイルをダウンロード
+  command: >
+    aws s3 cp s3://{{ s3_bucket }}/{{ s3_key }} /opt/sample.mp4
+  args:
+    creates: /opt/sample.mp4
+
+- name: ffmpeg systemdサービスユニットを設置
+  copy:
+    dest: /etc/systemd/system/ffmpeg-rtsp.service
+    content: |
+      [Unit]
+      Description=FFmpeg RTSP Stream
+      After=network.target mediamtx.service
+
+      [Service]
+      ExecStart=/usr/bin/ffmpeg -re -stream_loop -1 -i /opt/sample.mp4 -c copy -f rtsp rtsp://localhost:8554/stream
+      Restart=always
+      RestartSec=3
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: ffmpegサービスを有効化・起動
+  systemd:
+    name: ffmpeg-rtsp
+    enabled: yes
+    state: started
