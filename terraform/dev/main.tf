@@ -91,6 +91,14 @@ module "rtsp_asg" {
   key_name              = var.key_name
 }
 
+module "ec2_launch_ansible" {
+  source                  = "../modules/ec2_launch_ansible_trigger"
+  lambda_zip_path         = "./lambda/lambda_function.zip"
+  bastion_host_param_name = "/bastion_ansible/host"
+  bastion_ssh_key_secret_name = "bastion_ansible_ssh_key"
+}
+
+
 #module "nlb" {
 #  source      = "../modules/nlb"
 #  name_prefix = "dev"

@@ -1,0 +1,36 @@
+name: Build and Upload Lambda
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+env:
+  LAMBDA_S3_BUCKET: your-lambda-deploy-bucket
+  LAMBDA_ZIP_KEY: deployments/lambda_function.zip
+
+jobs:
+  build_and_upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Build Lambda package in Docker (Amazon Linux 2)
+        run: |
+          docker run --rm -v ${{ github.workspace }}/lambda:/var/task -w /var/task public.ecr.aws/lambda/python:3.9 \
+          /bin/sh -c "pip install -r requirements.txt -t . && zip -r ../lambda_function.zip ."
+
+      - name: Upload Lambda ZIP to S3
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ap-northeast-1
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: github-actions
+        id: aws-creds
+
+      - name: Upload ZIP to S3
+        run: |
+          aws s3 cp ${{ github.workspace }}/lambda_function.zip s3://${{ env.LAMBDA_S3_BUCKET }}/${{ env.LAMBDA_ZIP_KEY }}

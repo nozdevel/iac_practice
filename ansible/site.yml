@@ -1,0 +1,5 @@
+- name: Install simple-rtsp-server (MediaMTX)
+  hosts: rtsp
+  become: yes
+  roles:
+    - simple_rtsp

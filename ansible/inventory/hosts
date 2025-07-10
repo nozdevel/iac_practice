@@ -1,0 +1,2 @@
+[rtsp]
+10.0.1.23 ansible_user=ec2-user
