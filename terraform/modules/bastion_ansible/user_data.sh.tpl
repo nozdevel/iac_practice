@@ -18,6 +18,9 @@ dnf install -y python3-pip git
 pip3 install --upgrade pip
 pip3 install ansible
 
+# 実行環境をインストール
+pip3 install boto3 awscli
+
 # Ansible の動作確認ログ出力（オプション）
 ansible --version > /var/log/ansible_version.log
 

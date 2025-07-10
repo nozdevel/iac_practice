@@ -5,6 +5,10 @@
 
 *.terraform.lock.hcl
 
+# environment files
+config/dev.yml
+config/prod.yml
+
 # Crash log
 crash.log
 

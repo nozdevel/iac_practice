@@ -6,6 +6,8 @@ resource "aws_instance" "bastion" {
   key_name                    = var.key_name
   associate_public_ip_address = true
 
+  iam_instance_profile = var.iam_instance_profile
+
   user_data = templatefile("${path.module}/user_data.sh.tpl", {})
 
   tags = {

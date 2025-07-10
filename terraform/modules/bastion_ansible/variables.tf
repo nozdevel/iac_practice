@@ -30,3 +30,8 @@ variable "key_name" {
   description = "Key pair name for SSH"
   type        = string
 }
+
+variable "iam_instance_profile" {
+  description = "IAM instance profile name for bastion"
+  type        = string
+}

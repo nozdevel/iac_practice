@@ -88,15 +88,35 @@ jobs:
         run: |
           rsync -avz ansible/ ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/
 
+      # オプション: 転送後にbastion_ansibleでansible-playbookを実行
+      - name: (Optional) Run playbook on bastion
+        run: |
+          ssh ec2-user@${{ secrets.BASTION_HOST }} "cd ~/ansible && ENV=${{ env.ENV }} ansible-playbook deploy.yml -i inventory.ini"
 
-      #- name: Upload ZIP file
-      #  run: |
-      #    rsync -avz lambda/lambda.zip ec2-user@${{ secrets.BASTION_HOST }}:~/lambda.zip
+      # RTSP EC2のプライベートIPアドレス一覧を取得
+      - name: Get RTSP EC2 Private IPs
+        id: get_rtsp_ips
+        run: |
+          RTSP_IPS=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=$ENV-rtsp" "Name=instance-state-name,Values=running" \
+            --query "Reservations[].Instances[].PrivateIpAddress" \
+            --output text)
+          echo "rtsp_ips=$RTSP_IPS" >> $GITHUB_OUTPUT
 
-      ## オプション: 転送後にbastion_ansibleでansible-playbookを実行
-      #- name: (Optional) Run playbook on bastion
+      # Bastionにinventoryファイルを作成して転送
+      - name: Create and upload inventory
+        run: |
+          echo "[rtsp]" > inventory
+          for ip in ${{ steps.get_rtsp_ips.outputs.rtsp_ips }}; do
+            echo "$ip" >> inventory
+          done
+          rsync -avz inventory ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/inventory
+
+      ## Bastion経由でAnsible実行（複数台対応）
+      #- name: Run playbook on bastion for RTSP EC2
       #  run: |
-      #    ssh ec2-user@${{ secrets.BASTION_HOST }} "cd ~/ansible && ENV=${{ env.ENV }} ansible-playbook deploy.yml -i inventory.ini"
+      #    ssh ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }} \
+      #      "cd ~/ansible && ansible-playbook deploy.yml -i inventory"
 
       - name: Close SSH from 0.0.0.0/0
         if: always()

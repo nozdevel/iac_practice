@@ -35,13 +35,14 @@ module "vpc" {
 }
 
 module "bastion" {
-  source      = "../modules/bastion_ansible"
-  name_prefix = "dev"
-  ami_id      = "ami-03598bf9d15814511" # AL2023
-  vpc_id      = module.vpc.vpc_id
-  subnet_id   = module.vpc.public_subnet_ids[0]
-  key_name    = var.key_name
-  sg_id       = module.sg.bastion_sg_id
+  source               = "../modules/bastion_ansible"
+  name_prefix          = "dev"
+  ami_id               = "ami-03598bf9d15814511" # AL2023
+  vpc_id               = module.vpc.vpc_id
+  subnet_id            = module.vpc.public_subnet_ids[0]
+  key_name             = var.key_name
+  sg_id                = module.sg.bastion_sg_id
+  iam_instance_profile = module.iam.instance_profile_name
 }
 
 module "nat" {

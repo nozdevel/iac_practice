@@ -1,11 +1,11 @@
 # 名前がややこしいが、GitHubのOIDCプロバイダと、Relying Partyの連携させるためのリソース
 resource "aws_iam_openid_connect_provider" "github" {
   # 連携先クライアントのURL
-  url             = "https://token.actions.githubusercontent.com"
+  url = "https://token.actions.githubusercontent.com"
 
   # Relying Partyのドメイン
   # 通常は sts.amazonaws.com (自前の認証先を用意している場合などに変わる)
-  client_id_list  = ["sts.amazonaws.com"]
+  client_id_list = ["sts.amazonaws.com"]
 
   # クライアントのドメインが正しいことを証明するためのフィンガープリント
   # プロバイダがクライアントに接続した時に証明書のフィンガープリントが、こちらと一致するかチェックするのに使用
@@ -55,7 +55,7 @@ resource "aws_iam_policy" "custom_policy" {
   description = "Policy attached to ${var.role_name} for GitHub Actions"
 
   policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = concat(
       var.policy_statements,
       [
