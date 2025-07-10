@@ -4,9 +4,9 @@ resource "aws_iam_role" "lambda_exec_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
+      Effect    = "Allow",
       Principal = { Service = "lambda.amazonaws.com" },
-      Action = "sts:AssumeRole"
+      Action    = "sts:AssumeRole"
     }]
   })
 }
@@ -48,10 +48,10 @@ resource "aws_lambda_function" "trigger_ansible" {
 
   environment {
     variables = {
-      BASTION_HOST_PARAM       = var.bastion_host_param_name
-      BASTION_SSH_KEY_SECRET   = var.bastion_ssh_key_secret_name
-      BASTION_USER             = var.bastion_ssh_user
-      ANSIBLE_COMMAND          = var.ansible_command
+      BASTION_HOST_PARAM     = var.bastion_host_param_name
+      BASTION_SSH_KEY_SECRET = var.bastion_ssh_key_secret_name
+      BASTION_USER           = var.bastion_ssh_user
+      ANSIBLE_COMMAND        = var.ansible_command
     }
   }
 }
@@ -60,10 +60,10 @@ resource "aws_cloudwatch_event_rule" "ec2_launch_rule" {
   name = "${var.lambda_function_name}_ec2_launch_rule"
 
   event_pattern = jsonencode({
-    "source": ["aws.ec2"],
-    "detail-type": ["EC2 Instance State-change Notification"],
-    "detail": {
-      "state": ["running"]
+    "source" : ["aws.ec2"],
+    "detail-type" : ["EC2 Instance State-change Notification"],
+    "detail" : {
+      "state" : ["running"]
     }
   })
 }

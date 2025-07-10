@@ -1,5 +1,5 @@
 resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg"
+  name        = "${var.name_prefix}-bastion-sg"
   description = "Security group for Bastion host"
   vpc_id      = var.vpc_id
 
@@ -16,6 +16,10 @@ resource "aws_security_group" "bastion_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.name_prefix}-bastion-sg"
   }
 }
 

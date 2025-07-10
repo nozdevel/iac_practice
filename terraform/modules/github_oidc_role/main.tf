@@ -1,9 +1,31 @@
+# 名前がややこしいが、GitHubのOIDCプロバイダと、Relying Partyの連携させるためのリソース
 resource "aws_iam_openid_connect_provider" "github" {
-  url            = "https://token.actions.githubusercontent.com"
-  client_id_list = ["sts.amazonaws.com"]
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1",
-  "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
+  # 連携先クライアントのURL
+  url             = "https://token.actions.githubusercontent.com"
+
+  # Relying Partyのドメイン
+  # 通常は sts.amazonaws.com (自前の認証先を用意している場合などに変わる)
+  client_id_list  = ["sts.amazonaws.com"]
+
+  # クライアントのドメインが正しいことを証明するためのフィンガープリント
+  # プロバイダがクライアントに接続した時に証明書のフィンガープリントが、こちらと一致するかチェックするのに使用
+  thumbprint_list = data.tls_certificate.github_actions.certificates[*].sha1_fingerprint
 }
+
+data "http" "github_actions_openid_configuration" {
+  url = "https://token.actions.githubusercontent.com/.well-known/openid-configuration"
+}
+
+# フィンガープリントを動的に取得することでフィンガープリントが変わった時にも対応可能
+data "tls_certificate" "github_actions" {
+  url = jsondecode(data.http.github_actions_openid_configuration.response_body).jwks_uri
+}
+
+#resource "aws_iam_openid_connect_provider" "github" {
+#  url             = "https://token.actions.githubusercontent.com"
+#  client_id_list  = ["sts.amazonaws.com"]
+#  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+#}
 
 resource "aws_iam_role" "github_actions_role" {
   name = var.role_name
@@ -14,11 +36,14 @@ resource "aws_iam_role" "github_actions_role" {
       Effect = "Allow"
       Principal = {
         Federated = aws_iam_openid_connect_provider.github.arn
-      }
+      },
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:ref:refs/heads/${var.assume_branch}"
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        },
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:*"
         }
       }
     }]
@@ -31,7 +56,21 @@ resource "aws_iam_policy" "custom_policy" {
 
   policy = jsonencode({
     Version   = "2012-10-17"
-    Statement = var.policy_statements
+    Statement = concat(
+      var.policy_statements,
+      [
+        {
+          Effect = "Allow"
+          Action = [
+            "ec2:DescribeSecurityGroups",
+            "ec2:DescribeInstances",
+            "ec2:AuthorizeSecurityGroupIngress",
+            "ec2:RevokeSecurityGroupIngress"
+          ]
+          Resource = "*"
+        }
+      ]
+    )
   })
 }
 
