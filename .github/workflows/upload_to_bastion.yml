@@ -7,6 +7,10 @@ on:
         description: "Target environment (e.g., dev)"
         required: true
         default: "dev"
+        
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   upload:
