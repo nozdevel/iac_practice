@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ENV: ${{ env.ENV }}
+      ENV: ${{ github.event.inputs.env }}
       BASTION_HOST: ${{ secrets.BASTION_HOST }}
       BASTION_SSH_KEY: ${{ secrets.BASTION_SSH_KEY }}
       OIDC_ROLE_ARN_GITHUB: ${{ secrets.OIDC_ROLE_ARN_GITHUB }}
