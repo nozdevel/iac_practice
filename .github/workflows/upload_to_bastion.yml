@@ -7,7 +7,11 @@ on:
         description: "Target environment (e.g., dev)"
         required: true
         default: "dev"
-        
+      ssh_user:
+        description: "SSH user for Bastion"
+        required: true
+        default: "ec2-user"
+
 permissions:
   id-token: write
   contents: read
@@ -44,10 +48,16 @@ jobs:
         id: get_ip
         run: |
           BASTION_IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=bastion_ansible" "Name=instance-state-name,Values=running" \
+            --filters "Name=tag:Name,Values=$ENV-bastion-ansible" "Name=instance-state-name,Values=running" \
             --query "Reservations[0].Instances[0].PublicIpAddress" \
             --output text)
           echo "bastion_ip=$BASTION_IP" >> $GITHUB_OUTPUT
+
+      - name: Fail if Bastion IP not found
+        if: steps.get_ip.outputs.bastion_ip == ''
+        run: |
+          echo "Bastion IP not found"
+          exit 1
 
       - name: Set up SSH key
         run: |
@@ -61,7 +71,7 @@ jobs:
 
       - name: Upload Ansible directory
         run: |
-          rsync -avz ansible/ ec2-user@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/
+          rsync -avz ansible/ ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/
 
       #- name: Upload ZIP file
       #  run: |
