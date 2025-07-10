@@ -11,6 +11,7 @@ on:
 jobs:
   upload:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.env }}
 
     env:
       ENV: ${{ github.event.inputs.env }}
