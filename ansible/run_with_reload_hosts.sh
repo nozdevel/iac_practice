@@ -12,7 +12,7 @@ python3 scripts/update_rtsp_inventory.py
 rm -f ~/.ssh/known_hosts
 for ip in $(awk '/^[0-9]+\./ {print $1}' inventory/hosts); do
   ssh-keyscan -H $ip >> ~/.ssh/known_hosts 2>/dev/null
-don
+done
 
 # Playbookを実行
 ansible-playbook -i inventory/hosts playbook.yml
