@@ -88,11 +88,6 @@ jobs:
         run: |
           rsync -avz ansible/ ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/
 
-      # オプション: 転送後にbastion_ansibleでansible-playbookを実行
-      - name: (Optional) Run playbook on bastion
-        run: |
-          ssh ec2-user@${{ secrets.BASTION_HOST }} "cd ~/ansible && ENV=${{ env.ENV }} ansible-playbook deploy.yml -i inventory.ini"
-
       # RTSP EC2のプライベートIPアドレス一覧を取得
       - name: Get RTSP EC2 Private IPs
         id: get_rtsp_ips
