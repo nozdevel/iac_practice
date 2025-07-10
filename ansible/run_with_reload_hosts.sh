@@ -9,4 +9,4 @@ export AWS_REGION=${AWS_REGION:-ap-northeast-1}
 python3 scripts/update_rtsp_inventory.py
 
 # Playbookを実行
-ansible-playbook -i
+ansible-playbook -i inventory/hosts playbook.yml

@@ -15,11 +15,12 @@ systemctl restart amazon-ssm-agent
 dnf install -y python3-pip git
 
 # Ansible インストール
-pip3 install --upgrade pip
 pip3 install ansible
 
 # 実行環境をインストール
 pip3 install boto3 awscli
+pip3 show boto3
+pip3 show awscli
 
 # Ansible の動作確認ログ出力（オプション）
 ansible --version > /var/log/ansible_version.log
