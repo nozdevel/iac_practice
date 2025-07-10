@@ -1,5 +1,7 @@
 - name: Install and configure simple-rtsp-server (MediaMTX) on RTSP EC2 hosts
   hosts: rtsp
   become: yes
+  vars_files:
+    - ../config/dev.yml
   roles:
     - simple_rtsp

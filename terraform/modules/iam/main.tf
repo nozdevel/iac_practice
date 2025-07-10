@@ -44,6 +44,11 @@ resource "aws_iam_role_policy_attachment" "bastion_ec2" {
   policy_arn = aws_iam_policy.bastion_ec2_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "s3_readonly" {
+  role       = aws_iam_role.ssm_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+}
+
 resource "aws_iam_instance_profile" "ssm_profile" {
   name = "${var.name_prefix}-ssm-profile"
   role = aws_iam_role.ssm_role.name

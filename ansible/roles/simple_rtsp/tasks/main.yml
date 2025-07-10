@@ -73,7 +73,7 @@
 
 - name: S3から動画ファイルをダウンロード
   command: >
-    aws s3 cp s3://{{ s3_bucket }}/{{ s3_key }} /opt/sample.mp4
+    aws s3 cp s3://{{ s3_bucket }}/video/sample.mp4 /opt/sample.mp4
   args:
     creates: /opt/sample.mp4
 
