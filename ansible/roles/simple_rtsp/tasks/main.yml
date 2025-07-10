@@ -24,14 +24,15 @@
 - name: Extract MediaMTX
   unarchive:
     src: /tmp/mediamtx.tar.gz
-    dest: /usr/local/bin/
+    dest: /tmp/mediamtx_extracted/
     remote_src: yes
-    extra_opts: [--strip-components=1]
 
-- name: Ensure executable
-  file:
-    path: /usr/local/bin/mediamtx
+- name: Move mediamtx binary to /usr/local/bin
+  copy:
+    src: /tmp/mediamtx_extracted/mediamtx
+    dest: /usr/local/bin/mediamtx
     mode: '0755'
+    remote_src: yes
 
 - name: Create config directory
   file:
