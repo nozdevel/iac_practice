@@ -19,6 +19,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      - name: check
+        run: |
+          echo "ENV: $ENV"
+          echo "BASTION_HOST: ${{ secrets.BASTION_HOST }}"
+          echo "BASTION_SSH_KEY: ${{ secrets.BASTION_SSH_KEY }}"
+          echo "OIDC_ROLE_ARN_GITHUB: ${{ secrets.OIDC_ROLE_ARN_GITHUB }}"
+        
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
