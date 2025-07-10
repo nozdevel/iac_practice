@@ -47,8 +47,7 @@ jobs:
             --filters "Name=tag:Name,Values=bastion_ansible" "Name=instance-state-name,Values=running" \
             --query "Reservations[0].Instances[0].PublicIpAddress" \
             --output text)
-
-          echo "bastion_ip=$BASTION_IP" >> "$GITHUB_OUTPUT"
+          echo "bastion_ip=$BASTION_IP" >> $GITHUB_OUTPUT
 
       - name: Set up SSH key
         run: |
