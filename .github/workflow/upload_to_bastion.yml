@@ -1,0 +1,59 @@
+name: Upload Ansible to Bastion
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Target environment (e.g., dev)"
+        required: true
+        default: "dev"
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    env:
+      ENV: ${{ github.event.inputs.env }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.OIDC_ROLE_ARN_GITHUB }}
+          aws-region: ap-northeast-1
+
+      - name: Get Bastion Public IP
+        id: get_ip
+        run: |
+          BASTION_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=bastion_ansible" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].PublicIpAddress" \
+            --output text)
+
+          echo "bastion_ip=$BASTION_IP" >> "$GITHUB_OUTPUT"
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Set up known_hosts
+        run: |
+          ssh-keyscan ${{ secrets.BASTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Upload Ansible directory
+        run: |
+          rsync -avz ansible/ ec2-user@${{ steps.get_ip.outputs..bastion_ip }}:~/ansible/
+
+      #- name: Upload ZIP file
+      #  run: |
+      #    rsync -avz lambda/lambda.zip ec2-user@${{ secrets.BASTION_HOST }}:~/lambda.zip
+
+      ## オプション: 転送後にbastion_ansibleでansible-playbookを実行
+      #- name: (Optional) Run playbook on bastion
+      #  run: |
+      #    ssh ec2-user@${{ secrets.BASTION_HOST }} "cd ~/ansible && ENV=${{ env.ENV }} ansible-playbook deploy.yml -i inventory.ini"
