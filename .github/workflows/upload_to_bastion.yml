@@ -112,11 +112,11 @@ jobs:
           done
           rsync -avz inventory ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/inventory
 
-      ## Bastion経由でAnsible実行（複数台対応）
-      #- name: Run playbook on bastion for RTSP EC2
-      #  run: |
-      #    ssh ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }} \
-      #      "cd ~/ansible && ansible-playbook deploy.yml -i inventory"
+     # Bastion経由でrun_with_reload_hosts.shを実行
+      - name: Run run_with_reload_hosts.sh on bastion
+        run: |
+          ssh ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }} \
+            "cd ~/ansible && chmod +x run_with_reload_hosts.sh && ./run_with_reload_hosts.sh"
 
       - name: Close SSH from 0.0.0.0/0
         if: always()
