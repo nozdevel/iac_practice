@@ -47,7 +47,7 @@ jobs:
 
       - name: Upload Ansible directory
         run: |
-          rsync -avz ansible/ ec2-user@${{ steps.get_ip.outputs..bastion_ip }}:~/ansible/
+          rsync -avz ansible/ ec2-user@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/
 
       #- name: Upload ZIP file
       #  run: |
