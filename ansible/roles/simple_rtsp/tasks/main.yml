@@ -2,6 +2,12 @@
   set_fact:
     mediamtx_version: "v1.13.0"
 
+- name: Remove curl-minimal if present
+  package:
+    name: curl-minimal
+    state: absent
+  ignore_errors: yes
+
 - name: Install dependencies
   package:
     name:
