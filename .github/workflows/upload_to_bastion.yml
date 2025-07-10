@@ -13,7 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ENV: ${{ github.event.inputs.env }}
+      ENV: ${{ env.ENV }}
+      BASTION_HOST: ${{ secrets.BASTION_HOST }}
+      BASTION_SSH_KEY: ${{ secrets.BASTION_SSH_KEY }}
+      OIDC_ROLE_ARN_GITHUB: ${{ secrets.OIDC_ROLE_ARN_GITHUB }}
 
     steps:
       - name: Checkout code
@@ -22,14 +25,14 @@ jobs:
       - name: check
         run: |
           echo "ENV: $ENV"
-          echo "BASTION_HOST: ${{ secrets.BASTION_HOST }}"
-          echo "BASTION_SSH_KEY: ${{ secrets.BASTION_SSH_KEY }}"
-          echo "OIDC_ROLE_ARN_GITHUB: ${{ secrets.OIDC_ROLE_ARN_GITHUB }}"
+          echo "BASTION_HOST: $BASTION_HOST"
+          echo "BASTION_SSH_KEY: $BASTION_SSH_KEY"
+          echo "OIDC_ROLE_ARN_GITHUB: $OIDC_ROLE_ARN_GITHUB"
         
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: ${{ secrets.OIDC_ROLE_ARN_GITHUB }}
+          role-to-assume: $OIDC_ROLE_ARN_GITHUB
           aws-region: ap-northeast-1
           audience: sts.amazonaws.com
 
@@ -46,12 +49,12 @@ jobs:
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "$BASTION_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
       - name: Set up known_hosts
         run: |
-          ssh-keyscan ${{ secrets.BASTION_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan $BASTION_HOST >> ~/.ssh/known_hosts
 
       - name: Upload Ansible directory
         run: |
