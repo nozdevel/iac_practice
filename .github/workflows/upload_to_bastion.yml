@@ -113,11 +113,21 @@ jobs:
           done
           rsync -avz inventory ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/inventory
 
-     # Bastion経由でrun_with_reload_hosts.shを実行
+      # Bastionにconfig/dev.ymlの内容を環境変数として転送
+      - name: Export config/dev.yml as ENV on Bastion
+        run: |
+          while IFS=": " read -r key value; do
+            if [[ "$key" != "" && "$value" != "" ]]; then
+              echo "export ${key}=${value}" >> env.sh
+            fi
+          done < config/dev.yml
+          rsync -avz env.sh ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/env.sh
+
+      # Bastion経由でrun_with_reload_hosts.shを実行
       - name: Run run_with_reload_hosts.sh on bastion
         run: |
           ssh ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }} \
-            "cd ~/ansible && chmod +x run_with_reload_hosts.sh && ./run_with_reload_hosts.sh"
+            "cd ~/ansible && source env.sh && chmod +x run_with_reload_hosts.sh && ./run_with_reload_hosts.sh"
 
       - name: Close SSH from 0.0.0.0/0
         if: always()
