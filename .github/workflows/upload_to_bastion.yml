@@ -82,12 +82,12 @@ jobs:
 
       - name: Put Bastion SSH key to Secrets Manager
         run: |
-          aws secretsmanager describe-secret --secret-id bastion-ssh-key || \
+          aws secretsmanager describe-secret --secret-id BASTION_SSH_KEY_SECRET || \
           aws secretsmanager create-secret \
-            --name bastion-ssh-key \
+            --name BASTION_SSH_KEY_SECRET \
             --secret-string "${{ secrets.BASTION_SSH_KEY }}"
           aws secretsmanager update-secret \
-            --secret-id bastion-ssh-key \
+            --secret-id BASTION_SSH_KEY_SECRET \
             --secret-string "${{ secrets.BASTION_SSH_KEY }}"
 
       - name: Set up SSH key
