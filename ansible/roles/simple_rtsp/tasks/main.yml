@@ -90,6 +90,20 @@
   args:
     creates: /opt/sample.mp4
 
+- name: Enable RPM Fusion repository
+  dnf:
+    name: https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-9.noarch.rpm
+    state: present
+  become: yes
+
+- name: Install ffmpeg
+  dnf:
+    name:
+      - ffmpeg
+      - ffmpeg-devel
+    state: present
+  become: yes
+
 - name: ffmpeg systemdサービスユニットを設置
   copy:
     dest: /etc/systemd/system/ffmpeg-rtsp.service
