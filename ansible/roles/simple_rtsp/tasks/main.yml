@@ -1,9 +1,3 @@
-- name: Install and configure simple-rtsp-server (MediaMTX) on RTSP EC2 hosts
-  hosts: rtsp
-  become: yes
-  roles:
-    - simple_rtsp
-
 - name: Define MediaMTX version
   set_fact:
     mediamtx_version: "v1.13.0"
