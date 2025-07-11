@@ -15,4 +15,4 @@ for ip in $(awk '/^[0-9]+\./ {print $1}' inventory/hosts); do
 done
 
 # Playbookを実行
-ansible-playbook -i inventory/hosts playbook.yml
+ansible-playbook -i inventory/hosts playbook.yml --become | tee ansible_run.log
