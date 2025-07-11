@@ -96,6 +96,12 @@
     state: present
   become: yes
 
+- name: Install EPEL repository
+  dnf:
+    name: epel-release
+    state: present
+  become: yes
+
 - name: Install ffmpeg
   dnf:
     name:
