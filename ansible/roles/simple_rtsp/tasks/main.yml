@@ -90,25 +90,24 @@
   args:
     creates: /opt/sample.mp4
 
-- name: Enable RPM Fusion repository
-  dnf:
-    name: https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-9.noarch.rpm
-    state: present
-  become: yes
+- name: Download ffmpeg static binary
+  get_url:
+    url: https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+    dest: /tmp/ffmpeg-release-amd64-static.tar.xz
+    mode: '0644'
 
-- name: Install EPEL repository
-  dnf:
-    name: epel-release
-    state: present
-  become: yes
+- name: Extract ffmpeg static binary
+  unarchive:
+    src: /tmp/ffmpeg-release-amd64-static.tar.xz
+    dest: /opt/
+    remote_src: yes
 
-- name: Install ffmpeg
-  dnf:
-    name:
-      - ffmpeg
-      - ffmpeg-devel
-    state: present
-  become: yes
+- name: Copy ffmpeg binary to /usr/bin
+  copy:
+    src: /opt/ffmpeg-*-amd64-static/ffmpeg
+    dest: /usr/bin/ffmpeg
+    mode: '0755'
+    remote_src: yes
 
 - name: ffmpeg systemdサービスユニットを設置
   copy:
