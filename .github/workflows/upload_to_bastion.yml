@@ -38,7 +38,7 @@ jobs:
           echo "ENV: $ENV"
           echo "BASTION_SSH_KEY: $BASTION_SSH_KEY"
           echo "OIDC_ROLE_ARN_GITHUB: $OIDC_ROLE_ARN_GITHUB"
-        
+      
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -76,6 +76,10 @@ jobs:
           echo "Bastion IP not found"
           exit 1
 
+      - name: check2
+        run: |
+          echo "BASTION_IP: ${{ steps.get_ip.outputs.bastion_ip }}"
+
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
@@ -99,6 +103,10 @@ jobs:
             --query "Reservations[].Instances[].PrivateIpAddress" \
             --output text)
           echo "rtsp_ips=$RTSP_IPS" >> $GITHUB_OUTPUT
+
+      - name: check3
+        run: |
+          echo "RTSP_IP: ${{ steps.get_rtsp_ips.outputs.rtsp_ips }}"
 
       - name: Set up EC2 SSH key for RTSP
         run: |
