@@ -21,6 +21,12 @@
     dest: /tmp/mediamtx.tar.gz
     mode: '0644'
 
+- name: Create directory for mediamtx extraction
+  file:
+    path: /tmp/mediamtx_extracted
+    state: directory
+    mode: '0755'
+
 - name: Extract MediaMTX
   unarchive:
     src: /tmp/mediamtx.tar.gz
