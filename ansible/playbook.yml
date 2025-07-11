@@ -1,7 +1,9 @@
 - name: Install and configure simple-rtsp-server (MediaMTX) on RTSP EC2 hosts
   hosts: rtsp
   become: yes
-  vars_files:
-    - ../config/dev.yml
+  vars:
+    environment: "{{ lookup('env', 'ENV') }}"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    s3_bucket: "{{ lookup('env', 'S3_BUCKET') }}"
   roles:
     - simple_rtsp
