@@ -80,6 +80,16 @@ jobs:
         run: |
           echo "BASTION_IP: ${{ steps.get_ip.outputs.bastion_ip }}"
 
+      - name: Put Bastion SSH key to Secrets Manager
+        run: |
+          aws secretsmanager describe-secret --secret-id bastion-ssh-key || \
+          aws secretsmanager create-secret \
+            --name bastion-ssh-key \
+            --secret-string "${{ secrets.BASTION_SSH_KEY }}"
+          aws secretsmanager update-secret \
+            --secret-id bastion-ssh-key \
+            --secret-string "${{ secrets.BASTION_SSH_KEY }}"
+
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh

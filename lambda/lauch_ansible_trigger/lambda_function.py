@@ -9,7 +9,15 @@ ec2 = boto3.client('ec2')
 
 def lambda_handler(event, context):
     try:
-        # bastionのタグ名 or セキュリティグループで動的にIPを取得
+        # 新規EC2インスタンスIDをイベントから取得
+        instance_id = event['detail']['instance-id']
+
+        # 新規EC2のプライベートIPを取得
+        resp = ec2.describe_instances(InstanceIds=[instance_id])
+        instance = resp['Reservations'][0]['Instances'][0]
+        new_ec2_ip = instance['PrivateIpAddress']
+
+        # BastionのIP取得（タグ名で検索）
         filters = [
             {'Name': 'tag:Name', 'Values': ['bastion_ansible']},
             {'Name': 'instance-state-name', 'Values': ['running']}
@@ -18,9 +26,8 @@ def lambda_handler(event, context):
         reservations = resp.get('Reservations', [])
         if not reservations or not reservations[0]['Instances']:
             return {'statusCode': 500, 'body': 'No running bastion_ansible instance found.'}
-
-        instance = reservations[0]['Instances'][0]
-        bastion_host = instance.get('PublicIpAddress') or instance.get('PrivateIpAddress')
+        bastion_instance = reservations[0]['Instances'][0]
+        bastion_host = bastion_instance.get('PublicIpAddress') or bastion_instance.get('PrivateIpAddress')
         if not bastion_host:
             return {'statusCode': 500, 'body': 'Bastion instance has no reachable IP.'}
 
@@ -29,7 +36,6 @@ def lambda_handler(event, context):
         private_key_str = secret_response['SecretString']
 
         bastion_user = os.environ['BASTION_USER']
-        ansible_command = os.environ['ANSIBLE_COMMAND']
 
         # /tmpに秘密鍵を書き込み
         key_path = '/tmp/temp_key.pem'
@@ -39,10 +45,16 @@ def lambda_handler(event, context):
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
         ssh.connect(hostname=bastion_host, username=bastion_user, key_filename=key_path)
 
-        stdin, stdout, stderr = ssh.exec_command(ansible_command)
+        # 新EC2のIPをインベントリに追加
+        inventory_path = '/home/ec2-user/iac_practice/ansible/inventory/hosts'
+        add_host_cmd = f"echo '{new_ec2_ip}' >> {inventory_path}"
+        ssh.exec_command(add_host_cmd)
+
+        # Ansibleを再実行
+        ansible_cmd = "cd /home/ec2-user/iac_practice/ansible && ./run_with_reload_hosts.sh"
+        stdin, stdout, stderr = ssh.exec_command(ansible_cmd)
         out = stdout.read().decode()
         err = stderr.read().decode()
 

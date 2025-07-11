@@ -21,12 +21,6 @@ data "tls_certificate" "github_actions" {
   url = jsondecode(data.http.github_actions_openid_configuration.response_body).jwks_uri
 }
 
-#resource "aws_iam_openid_connect_provider" "github" {
-#  url             = "https://token.actions.githubusercontent.com"
-#  client_id_list  = ["sts.amazonaws.com"]
-#  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
-#}
-
 resource "aws_iam_role" "github_actions_role" {
   name = var.role_name
 
@@ -65,7 +59,12 @@ resource "aws_iam_policy" "custom_policy" {
             "ec2:DescribeSecurityGroups",
             "ec2:DescribeInstances",
             "ec2:AuthorizeSecurityGroupIngress",
-            "ec2:RevokeSecurityGroupIngress"
+            "ec2:RevokeSecurityGroupIngress",
+            "secretsmanager:CreateSecret",
+            "secretsmanager:UpdateSecret",
+            "secretsmanager:DeleteSecret",
+            "secretsmanager:DescribeSecret",
+            "secretsmanager:GetSecretValue"
           ]
           Resource = "*"
         }
