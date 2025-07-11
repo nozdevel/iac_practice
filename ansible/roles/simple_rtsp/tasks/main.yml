@@ -102,9 +102,16 @@
     dest: /opt/
     remote_src: yes
 
+- name: Find ffmpeg binary path
+  find:
+    paths: /opt/
+    patterns: 'ffmpeg'
+    recurse: yes
+  register: ffmpeg_bin
+
 - name: Copy ffmpeg binary to /usr/bin
   copy:
-    src: /opt/ffmpeg-*-amd64-static/ffmpeg
+    src: "{{ ffmpeg_bin.files[0].path }}"
     dest: /usr/bin/ffmpeg
     mode: '0755'
     remote_src: yes
