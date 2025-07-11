@@ -26,6 +26,8 @@ jobs:
       BASTION_HOST: ${{ secrets.BASTION_HOST }}
       BASTION_SSH_KEY: ${{ secrets.BASTION_SSH_KEY }}
       OIDC_ROLE_ARN_GITHUB: ${{ secrets.OIDC_ROLE_ARN_GITHUB }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      S3_BUCKET: ${{ vars.S3_BUCKET }}
 
     steps:
       - name: Checkout code
@@ -113,14 +115,13 @@ jobs:
           done
           rsync -avz inventory ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/inventory
 
-      # Bastionにconfig/dev.ymlの内容を環境変数として転送
-      - name: Export config/dev.yml as ENV on Bastion
+      # Bastionに環境変数を転送
+      - name: Export workflow env as ENV on Bastion
         run: |
-          while IFS=": " read -r key value; do
-            if [[ "$key" != "" && "$value" != "" ]]; then
-              echo "export ${key}=${value}" >> env.sh
-            fi
-          done < config/dev.yml
+          echo "export ENV=${ENV}" > env.sh
+          echo "export AWS_REGION=${AWS_REGION}" >> env.sh
+          echo "export S3_BUCKET=${S3_BUCKET}" >> env.sh
+          # 必要なら他の変数も追加
           rsync -avz env.sh ${{ github.event.inputs.ssh_user }}@${{ steps.get_ip.outputs.bastion_ip }}:~/ansible/env.sh
 
       # Bastion経由でrun_with_reload_hosts.shを実行

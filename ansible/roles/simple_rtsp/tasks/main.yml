@@ -2,11 +2,9 @@
   hosts: rtsp
   become: yes
   vars:
-    environment: "{{ lookup('env', 'environment') }}"
-    region: "{{ lookup('env', 'region') }}"
-    project_name: "{{ lookup('env', 'project_name') }}"
-    instance_type: "{{ lookup('env', 'instance_type') }}"
-    s3_bucket: "{{ lookup('env', 's3_bucket') }}"
+    environment: "{{ lookup('env', 'ENV') }}"
+    region: "{{ lookup('env', 'AWS_REGION') }}"
+    s3_bucket: "{{ lookup('env', 'S3_BUCKET') }}"
   roles:
     - simple_rtsp
 
