@@ -4,20 +4,19 @@ variable "lambda_function_name" {
   default     = "trigger_ansible_on_ec2_launch"
 }
 
-variable "bastion_host_param_name" {
+variable "environment" {
+  description = "Lambda ENV value"
   type        = string
-  description = "SSM Parameter Storeのパラメータ名（bastionホスト/IP）"
 }
 
 variable "bastion_ssh_key_secret_name" {
+  description = "Secrets Manager key name"
   type        = string
-  description = "Secrets Managerのシークレット名（bastion SSH秘密鍵）"
 }
 
 variable "bastion_ssh_user" {
+  description = "Bastion SSH user"
   type        = string
-  description = "bastion接続用ユーザー名"
-  default     = "ec2-user"
 }
 
 variable "ansible_command" {
@@ -41,4 +40,14 @@ variable "lambda_handler" {
 variable "lambda_zip_path" {
   type        = string
   description = "Lambda ZIPファイルのパス"
+}
+
+variable "lambda_subnet_ids" {
+  description = "List of subnet IDs for Lambda function"
+  type        = list(string)
+}
+
+variable "lambda_security_group_ids" {
+  description = "List of security group IDs for Lambda function"
+  type        = list(string)
 }

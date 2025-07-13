@@ -1,22 +1,5 @@
 #!/bin/bash
-
-# ログファイル
-exec > /var/log/user-data.log 2>&1
-
-echo "[INFO] Start user-data"
-
-dnf update -y
-dnf install -y docker
-systemctl enable --now docker
-systemctl start docker
-# Docker起動後、AnsibleでRTSP server導入予定
-
-# SSM Agentの明示的起動
-dnf install -y amazon-ssm-agent
-systemctl enable --now amazon-ssm-agent
-systemctl restart amazon-ssm-agent
-
-dnf install -y jq
+# RTSP EC2起動時・再起動時にLambdaをInvokeするサンプル
 # IMDSv2対応でインスタンスID取得
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
 INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id | tr -cd '[:alnum:]-')
@@ -45,16 +28,3 @@ if [ -n "$INSTANCE_ID" ]; then
 else
   echo "[ERROR] instance-id取得失敗"
 fi
-
-cat <<'EOF' > /usr/local/bin/rtsp_ansible_trigger.sh
-${RTSP_TRIGGER_SH}
-EOF
-chmod +x /usr/local/bin/rtsp_ansible_trigger.sh
-
-cat <<'EOF' > /etc/systemd/system/rtsp_ansible_trigger.service
-${RTSP_TRIGGER_SERVICE}
-EOF
-systemctl daemon-reload
-systemctl enable --now rtsp_ansible_trigger.service
-
-echo "[INFO] user-data finished"

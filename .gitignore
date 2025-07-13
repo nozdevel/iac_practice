@@ -1,21 +1,22 @@
-# Terraform state
+# Terraformの状態ファイル（state管理用、機密情報含むため除外）
 *.tfstate
 *.tfstate.backup
 *.tfstate.*
 
+# Terraformのロックファイル（依存関係管理用）
 *.terraform.lock.hcl
 
-# environment files
+# 環境ごとの設定ファイル（機密情報や環境変数を含む場合がある）
 config/dev.yml
 config/prod.yml
 
-# Crash log
+# Terraformのクラッシュログ（デバッグ用）
 crash.log
 
-# Terraform plan files
+# Terraformのplanファイル（一時的な実行計画）
 *.tfplan
 
-# Terraform override files
+# Terraformの変数・オーバーライドファイル（環境ごとの値や一時的な設定）
 *.tfvars
 *.tfvars.json
 override.tf
@@ -23,30 +24,34 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Sensitive provider credentials
+# プロバイダー認証情報（AWS等の認証情報ファイル）
 .terraformrc
 terraform.rc
 
-# Directory where Terraform keeps plugins and providers
+# Terraformのプラグイン・プロバイダー格納ディレクトリ
 .terraform/
 
-# Editor swap/backup files
+# エディタの一時ファイル・バックアップファイル
 *~
 *.swp
 *.bak
 
-# VS Code settings (optional)
+# VS Codeの設定ディレクトリ（個人環境用）
 .vscode/
 
-# macOS system files
+# macOSのシステムファイル
 .DS_Store
 
-# AWS credentials/config (if present)
+# AWS認証情報・鍵ファイル
 *.pem
 *.key
 .aws/
 
-# Ansible cache (if used alongside Terraform)
+# Lambdaのビルド成果物（ZIPや一時ディレクトリ）
+terraform/modules/lambda_ec2_launch_ansible_trigger/build/
+terraform/modules/lambda_ec2_launch_ansible_trigger/lambda_layer.zip
+
+# Ansibleのキャッシュ・リトライファイル
 *.retry
 .cache/
 

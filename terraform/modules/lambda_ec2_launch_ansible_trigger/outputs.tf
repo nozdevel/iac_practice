@@ -1,6 +1,6 @@
 output "lambda_function_arn" {
   description = "Lambda関数のARN"
-  value       = aws_lambda_function.trigger_ansible.arn
+  value       = aws_lambda_function.lambda_ec2_launch_ansible_trigger.arn
 }
 
 output "lambda_execution_role_arn" {

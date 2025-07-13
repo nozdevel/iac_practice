@@ -11,10 +11,14 @@ resource "aws_launch_template" "this" {
   network_interfaces {
     associate_public_ip_address = false
     security_groups             = [var.security_group_id]
-    subnet_id                   = var.subnet_ids[0] # Dummy default; ASG側でoverride
+    subnet_id                   = var.subnet_ids[0]
   }
 
-  user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {}))
+  user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
+    REGION = var.region
+    RTSP_TRIGGER_SH = file("${path.module}/rtsp_ansible_trigger.sh")
+    RTSP_TRIGGER_SERVICE = file("${path.module}/rtsp_ansible_trigger.service")
+  }))
 
   lifecycle {
     create_before_destroy = true

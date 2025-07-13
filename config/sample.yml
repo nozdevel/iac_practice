@@ -1,0 +1,6 @@
+environment: dev
+region: ap-northeast-1
+project_name: iac_practice
+instance_type: t3.micro
+s3_bucket: your-s3-bucket-name
+# 他に必要な変数があれば追加してください

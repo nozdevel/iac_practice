@@ -16,3 +16,9 @@ variable "bastion_src_ip" {
 variable "github_repo" {
   type = string
 }
+
+variable "region" {
+  description = "AWS region"
+  type        = string
+  default     = "ap-northeast-1"
+}
