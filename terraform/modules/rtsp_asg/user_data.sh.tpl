@@ -1,9 +1,14 @@
 #!/bin/bash
 
 # ログファイル
+
 exec > /var/log/user-data.log 2>&1
 
 echo "[INFO] Start user-data"
+
+# Terraformからregionを埋め込む
+export REGION="${region}"
+echo "[INFO] REGION set to $REGION"
 
 dnf update -y
 dnf install -y docker
@@ -21,7 +26,7 @@ dnf install -y jq
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
 INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id | tr -cd '[:alnum:]-')
 echo "[INFO] INSTANCE_ID: $INSTANCE_ID"
-echo "[INFO] REGION: ${REGION}"
+echo "[INFO] REGION: $REGION"
 
 if [ -n "$INSTANCE_ID" ]; then
   PAYLOAD=$(printf '{"instance_id":"%s"}' "$INSTANCE_ID")
@@ -33,7 +38,7 @@ if [ -n "$INSTANCE_ID" ]; then
     --function-name trigger_ansible_on_ec2_launch \
     --payload fileb:///tmp/lambda_payload.json \
     /tmp/lambda_output.json \
-    --region ${REGION}
+    --region $REGION
   STATUS=$?
   if [ $STATUS -ne 0 ]; then
     echo "[ERROR] lambda invoke failed with status $STATUS"
@@ -46,13 +51,26 @@ else
   echo "[ERROR] instance-id取得失敗"
 fi
 
+
 cat <<'EOF' > /usr/local/bin/rtsp_ansible_trigger.sh
 ${RTSP_TRIGGER_SH}
 EOF
 chmod +x /usr/local/bin/rtsp_ansible_trigger.sh
 
-cat <<'EOF' > /etc/systemd/system/rtsp_ansible_trigger.service
-${RTSP_TRIGGER_SERVICE}
+# REGION変数を環境変数として設定するため、変数展開ありのcatで出力
+cat <<EOF > /etc/systemd/system/rtsp_ansible_trigger.service
+[Unit]
+Description=Invoke Lambda to trigger Ansible on RTSP EC2 boot/restart
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=REGION=$REGION
+ExecStart=/usr/local/bin/rtsp_ansible_trigger.sh
+
+[Install]
+WantedBy=multi-user.target
 EOF
 systemctl daemon-reload
 systemctl enable --now rtsp_ansible_trigger.service

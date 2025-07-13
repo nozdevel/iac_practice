@@ -15,7 +15,7 @@ resource "aws_launch_template" "this" {
   }
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
-    REGION = var.region
+    region = var.region
     RTSP_TRIGGER_SH = file("${path.module}/rtsp_ansible_trigger.sh")
     RTSP_TRIGGER_SERVICE = file("${path.module}/rtsp_ansible_trigger.service")
   }))

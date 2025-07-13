@@ -23,6 +23,15 @@ resource "aws_security_group" "bastion_sg" {
   }
 }
 
+resource "aws_security_group_rule" "bastion_ssh_from_lambda" {
+  type                     = "ingress"
+  from_port                = 22
+  to_port                  = 22
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.bastion_sg.id
+  source_security_group_id = aws_security_group.lambda.id
+}
+
 resource "aws_security_group" "rtsp_sg" {
   name        = "${var.name_prefix}-rtsp-sg"
   description = "Allow RTSP from NLB only"
@@ -85,15 +94,6 @@ resource "aws_security_group" "nat_sg" {
   tags = {
     Name = "${var.name_prefix}-nat-sg"
   }
-}
-
-resource "aws_security_group_rule" "bastion_ssh_from_lambda" {
-  type                     = "ingress"
-  from_port                = 22
-  to_port                  = 22
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.bastion_sg.id
-  source_security_group_id = aws_security_group.lambda.id
 }
 
 resource "aws_security_group" "lambda" {

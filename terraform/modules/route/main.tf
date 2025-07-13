@@ -56,6 +56,18 @@ resource "aws_network_acl" "private" {
   }
 }
 
+# Inbound: VPC内からのSSH (TCP/22) を許可
+resource "aws_network_acl_rule" "private_in_allow_ssh" {
+  network_acl_id = aws_network_acl.private.id
+  rule_number    = 120
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = var.vpc_cidr_block
+  from_port      = 22
+  to_port        = 22
+}
+
 # Inbound: VPC内からの通信を許可（全プロトコル）
 resource "aws_network_acl_rule" "private_in_allow_vpc" {
   network_acl_id = aws_network_acl.private.id

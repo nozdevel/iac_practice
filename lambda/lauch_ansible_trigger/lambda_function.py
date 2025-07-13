@@ -97,6 +97,11 @@ def lambda_handler(event, context):
         logger.info(f"Ansible STDOUT: {out}")
         logger.info(f"Ansible STDERR: {err}")
 
+        # SSH接続後、ディレクトリとファイルの存在確認
+        ssh.exec_command("ls -l /home/ec2-user/iac_practice/ansible")
+        ssh.exec_command("pwd")
+        ssh.exec_command("whoami")
+
         ssh.close()
         logger.info("SSH connection closed.")
 
