@@ -89,21 +89,21 @@ Auto Scalingで起動したEC2にRTSPサーバ（MediaMTX）を自動構成す�
 
 ## 初期セットアップ
 
-1. **Terraformでインフラ構築**
-
-   ```sh
-   cd terraform/dev
-   terraform init
-   terraform apply
-   ```
-
-2. **Lambda ZIPのビルド・依存パッケージの準備**
+1. **Lambda ZIPのビルド・依存パッケージの準備**
 
    ```sh
    cd terraform/modules/lambda_ec2_launch_ansible_trigger
    bash lambda_build.sh
    # build/ ディレクトリに依存ライブラリとlambda_function.pyが展開されます
    # lambda_layer.zipも自動生成されます
+   ```
+
+2. **Terraformでインフラ構築**
+
+   ```sh
+   cd terraform/dev
+   terraform init
+   terraform apply
    ```
 
 3. **GitHub Actionsによる自動構成**
