@@ -19,9 +19,6 @@ variable "public_subnet_id" {
   type = string
 }
 
-variable "private_route_table_id" {
-  type = string
-}
 
 variable "instance_profile_name" {
   type = string

@@ -16,8 +16,6 @@ resource "aws_launch_template" "this" {
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
     region = var.region
-    RTSP_TRIGGER_SH = file("${path.module}/rtsp_ansible_trigger.sh")
-    RTSP_TRIGGER_SERVICE = file("${path.module}/rtsp_ansible_trigger.service")
   }))
 
   lifecycle {
@@ -33,7 +31,7 @@ resource "aws_autoscaling_group" "this" {
   vpc_zone_identifier = var.subnet_ids
   launch_template {
     id      = aws_launch_template.this.id
-    version = "$Latest"
+    version = "$Latest" # 最新バージョンを常に使用
   }
 
   health_check_type = "EC2"

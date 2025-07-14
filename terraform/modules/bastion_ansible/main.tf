@@ -8,7 +8,9 @@ resource "aws_instance" "bastion" {
 
   iam_instance_profile = var.iam_instance_profile
 
-  user_data = templatefile("${path.module}/user_data.sh.tpl", {})
+  user_data = templatefile("${path.module}/user_data.sh.tpl", {
+    s3_bucket = var.s3_bucket
+  })
 
   tags = {
     Name = "${var.name_prefix}-bastion-ansible"

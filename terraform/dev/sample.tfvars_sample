@@ -1,8 +1,1 @@
-env            = "dev"
-aws_profile    = "default"
-region         = "ap-northeast-1"
-key_name       = "your-key-name"
-bastion_src_ip = "0.0.0.0/0" # 公開用は必要に応じて制限してください
-github_repo    = "your-github-repo"
-instance_type  = "t2.micro"
-ami_id         = "ami-0abcdef1234567890"
+# 必要なものがあれば追加してください

@@ -62,22 +62,24 @@ resource "aws_lambda_layer_version" "python_libs" {
 }
 
 resource "aws_lambda_function" "lambda_ec2_launch_ansible_trigger" {
-  function_name    = var.lambda_function_name
-  handler          = var.lambda_handler
-  runtime          = var.lambda_runtime
-  role             = aws_iam_role.lambda_exec_role.arn
-  filename         = var.lambda_zip_path
-  source_code_hash = filebase64sha256(var.lambda_zip_path)
+  function_name = var.lambda_function_name
+  handler       = var.lambda_handler
+  runtime       = var.lambda_runtime
+  role          = aws_iam_role.lambda_exec_role.arn
+  filename      = var.lambda_zip_path
+  # 初回のapplyで構成されないことを防ぐワークアラウンド
+  source_code_hash = base64sha256("dummy-value")
 
   environment {
     variables = {
       ENV                    = var.environment
       BASTION_SSH_KEY_SECRET = var.bastion_ssh_key_secret_name
       BASTION_USER           = var.bastion_ssh_user
+      S3_BUCKET              = var.s3_bucket
     }
   }
 
-  timeout = 60
+  timeout = 300
 
   vpc_config {
     subnet_ids         = var.lambda_subnet_ids

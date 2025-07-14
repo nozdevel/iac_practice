@@ -1,6 +1,11 @@
+aws_profile: your-aws-profile
 environment: dev
 region: ap-northeast-1
 project_name: iac_practice
+ami_id: ami-03598bf9d15814511 # Aamazon Linux 2023
 instance_type: t3.micro
+key_name: your-key-name
 s3_bucket: your-s3-bucket-name
+bastion_src_ip: your-bastion-src-ip
+github_repo: your-github-repo
 # 他に必要な変数があれば追加してください

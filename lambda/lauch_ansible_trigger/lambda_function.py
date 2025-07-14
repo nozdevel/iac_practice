@@ -23,6 +23,7 @@ def print_env_info():
 def lambda_handler(event, context):
     print_env_info()
     logger.info(f"Received event: {event}")
+    ssh = None
     try:
         # 新規EC2インスタンスIDをイベントから取得
         instance_id = event.get('instance_id')
@@ -74,21 +75,45 @@ def lambda_handler(event, context):
         os.chmod(key_path, stat.S_IRUSR | stat.S_IWUSR)  # chmod 600
         logger.info("Private key file permissions set to 600.")
 
-        # SSH接続
-        logger.info("Starting SSH connection to bastion.")
+        # SSH接続（リトライ処理付き）
+        import time
+        import traceback
+        logger.info(f"Starting SSH connection to bastion. host={bastion_host}, user={bastion_user}, key_path={key_path}")
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(hostname=bastion_host, username=bastion_user, key_filename=key_path)
-        logger.info("SSH connection established.")
-
-        # 新EC2のIPをインベントリに追加
-        inventory_path = '/home/ec2-user/iac_practice/ansible/inventory/hosts'
-        add_host_cmd = f"echo '{new_ec2_ip}' >> {inventory_path}"
-        logger.info(f"Adding new EC2 IP to inventory: {add_host_cmd}")
-        ssh.exec_command(add_host_cmd)
+        connected = False
+        for i in range(5):
+            try:
+                ssh.connect(hostname=bastion_host, username=bastion_user, key_filename=key_path, timeout=30)
+                logger.info(f"SSH connection established (try {i+1}/5)")
+                # banner情報も出力
+                try:
+                    banner = ssh.get_transport().remote_version if ssh.get_transport() else None
+                    logger.info(f"SSH remote banner: {banner}")
+                except Exception as banner_err:
+                    logger.warning(f"Could not get SSH banner: {banner_err}")
+                connected = True
+                break
+            except Exception as e:
+                logger.warning(f"SSH connect failed (try {i+1}/5): {e}")
+                logger.warning(f"Exception type: {type(e).__name__}, args: {e.args}")
+                logger.warning(f"Traceback: {traceback.format_exc()}")
+                time.sleep(10)
+        if not connected:
+            logger.error("SSH connection failed after 5 retries.")
+            logger.error(f"host={bastion_host}, user={bastion_user}, key_path={key_path}")
+            if ssh:
+                try:
+                    ssh.close()
+                except Exception as close_err:
+                    logger.warning(f"Error closing SSH after failure: {close_err}")
+            return {
+                'statusCode': 500,
+                'body': f'SSH connection failed after retries: {bastion_host}'
+            }
 
         # Ansibleを再実行
-        ansible_cmd = "cd /home/ec2-user/iac_practice/ansible && ./run_with_reload_hosts.sh"
+        ansible_cmd = "cd /home/ec2-user/ansible && ./run_with_reload_hosts.sh"
         logger.info(f"Executing Ansible command: {ansible_cmd}")
         stdin, stdout, stderr = ssh.exec_command(ansible_cmd)
         out = stdout.read().decode()
@@ -98,12 +123,25 @@ def lambda_handler(event, context):
         logger.info(f"Ansible STDERR: {err}")
 
         # SSH接続後、ディレクトリとファイルの存在確認
-        ssh.exec_command("ls -l /home/ec2-user/iac_practice/ansible")
-        ssh.exec_command("pwd")
-        ssh.exec_command("whoami")
+        for cmd in [
+            "ls -l /home/ec2-user/ansible",
+            "pwd",
+            "whoami"
+        ]:
+            logger.info(f"Executing: {cmd}")
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            out = stdout.read().decode()
+            err = stderr.read().decode()
+            logger.info(f"{cmd} STDOUT: {out}")
+            logger.info(f"{cmd} STDERR: {err}")
 
-        ssh.close()
-        logger.info("SSH connection closed.")
+        # SSH接続は必ずクローズする
+        try:
+            if ssh:
+                ssh.close()
+                logger.info("SSH connection closed.")
+        except Exception as close_err:
+            logger.warning(f"Error closing SSH: {close_err}")
 
         return {
             'statusCode': 200,
@@ -112,6 +150,13 @@ def lambda_handler(event, context):
 
     except Exception as e:
         logger.error(f"Error: {str(e)}", exc_info=True)
+        # 例外発生時も必ずSSHクローズ
+        try:
+            if ssh:
+                ssh.close()
+                logger.info("SSH connection closed (on exception).")
+        except Exception as close_err:
+            logger.warning(f"Error closing SSH (on exception): {close_err}")
         return {
             'statusCode': 500,
             'body': f'Error executing Ansible: {str(e)}'

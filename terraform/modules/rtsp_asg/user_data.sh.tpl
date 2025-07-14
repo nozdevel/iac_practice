@@ -1,14 +1,18 @@
 #!/bin/bash
+set -x
 
 # ログファイル
-
 exec > /var/log/user-data.log 2>&1
 
 echo "[INFO] Start user-data"
 
 # Terraformからregionを埋め込む
+
 export REGION="${region}"
 echo "[INFO] REGION set to $REGION"
+# 全ユーザーで参照できるようにprofile.dへも設定
+echo "export REGION=\"${region}\"" > /etc/profile.d/region.sh
+chmod 644 /etc/profile.d/region.sh
 
 dnf update -y
 dnf install -y docker
@@ -22,38 +26,53 @@ systemctl enable --now amazon-ssm-agent
 systemctl restart amazon-ssm-agent
 
 dnf install -y jq
-# IMDSv2対応でインスタンスID取得
-TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
-INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id | tr -cd '[:alnum:]-')
-echo "[INFO] INSTANCE_ID: $INSTANCE_ID"
-echo "[INFO] REGION: $REGION"
 
-if [ -n "$INSTANCE_ID" ]; then
-  PAYLOAD=$(printf '{"instance_id":"%s"}' "$INSTANCE_ID")
-  echo "[INFO] lambda invoke payload: $PAYLOAD"
-  echo "$PAYLOAD" > /tmp/lambda_payload.json
-  cat -v /tmp/lambda_payload.json
-
-  aws lambda invoke \
-    --function-name trigger_ansible_on_ec2_launch \
-    --payload fileb:///tmp/lambda_payload.json \
-    /tmp/lambda_output.json \
-    --region $REGION
-  STATUS=$?
-  if [ $STATUS -ne 0 ]; then
-    echo "[ERROR] lambda invoke failed with status $STATUS"
-    [ -f /tmp/lambda_output.json ] && cat /tmp/lambda_output.json
-  else
-    echo "[INFO] lambda invoke completed"
-    cat /tmp/lambda_output.json
-  fi
-else
-  echo "[ERROR] instance-id取得失敗"
-fi
-
-
+# rtsp_ansible_trigger.shを直接生成
 cat <<'EOF' > /usr/local/bin/rtsp_ansible_trigger.sh
-${RTSP_TRIGGER_SH}
+#!/bin/bash
+SERVICE_NAME="mediamtx"
+INTERVAL=60
+
+while true; do
+  systemctl is-active --quiet $SERVICE_NAME
+  if [ $? -eq 0 ]; then
+    echo "[INFO] $SERVICE_NAME is active. Stopping Lambda invoke loop."
+    break
+  fi
+
+  # IMDSv2対応でインスタンスID取得
+  TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
+  INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id | tr -cd '[:alnum:]-')
+  echo "[INFO] INSTANCE_ID: $INSTANCE_ID"
+  echo "[INFO] REGION: ${region}"
+
+  if [ -n "$INSTANCE_ID" ]; then
+    PAYLOAD=$(printf '{"instance_id":"%s"}' "$INSTANCE_ID")
+    echo "[INFO] lambda invoke payload: $PAYLOAD"
+    echo "$PAYLOAD" > /tmp/lambda_payload.json
+    cat -v /tmp/lambda_payload.json
+
+    aws lambda invoke \
+      --function-name trigger_ansible_on_ec2_launch \
+      --payload fileb:///tmp/lambda_payload.json \
+      /tmp/lambda_output.json \
+      --region $REGION
+
+    STATUS=$?
+    if [ $STATUS -ne 0 ]; then
+      echo "[ERROR] lambda invoke failed with status $STATUS"
+      [ -f /tmp/lambda_output.json ] && cat /tmp/lambda_output.json
+      break
+    else
+      echo "[INFO] lambda invoke completed"
+      cat /tmp/lambda_output.json
+    fi
+  else
+    echo "[ERROR] instance-id取得失敗"
+  fi
+
+  sleep $INTERVAL
+done
 EOF
 chmod +x /usr/local/bin/rtsp_ansible_trigger.sh
 

@@ -1,3 +1,8 @@
+variable "lambda_sg_id" {
+  description = "Lambda Security Group ID for Bastion ingress rule"
+  type        = string
+  default     = ""
+}
 variable "vpc_id" {
   type = string
 }

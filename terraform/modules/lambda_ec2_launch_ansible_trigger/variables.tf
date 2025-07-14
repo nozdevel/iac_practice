@@ -42,6 +42,11 @@ variable "lambda_zip_path" {
   description = "Lambda ZIPファイルのパス"
 }
 
+variable "s3_bucket" {
+  description = "S3バケット名（dev.ymlから取得）"
+  type        = string
+}
+
 variable "lambda_subnet_ids" {
   description = "List of subnet IDs for Lambda function"
   type        = list(string)

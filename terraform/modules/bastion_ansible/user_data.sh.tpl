@@ -29,4 +29,8 @@ ansible --version > /var/log/ansible_version.log
 mkdir -p /home/ec2-user/ansible
 chown ec2-user:ec2-user /home/ec2-user/ansible
 
+export S3_BUCKET="${s3_bucket}"
+# 全ユーザーで参照できるようにprofile.dへも設定
+echo "export S3_BUCKET=\"${s3_bucket}\"" > /etc/profile.d/s3_bucket.sh
+chmod 644 /etc/profile.d/s3_bucket.sh
 echo "[INFO] user-data finished"

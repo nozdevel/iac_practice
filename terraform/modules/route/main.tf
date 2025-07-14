@@ -1,10 +1,3 @@
-resource "aws_internet_gateway" "this" {
-  vpc_id = var.vpc_id
-
-  tags = {
-    Name = "${var.name_prefix}-igw"
-  }
-}
 
 # Public Route Table (→ IGW)
 resource "aws_route_table" "public" {
@@ -12,7 +5,7 @@ resource "aws_route_table" "public" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this.id
+    gateway_id = var.igw_id
   }
 
   tags = {

@@ -22,3 +22,8 @@ variable "vpc_cidr_block" {
   description = "VPCのCIDRブロック（例: 10.0.0.0/16）"
   type        = string
 }
+
+variable "igw_id" {
+  description = "Internet Gateway ID (from igw module)"
+  type        = string
+}

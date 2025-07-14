@@ -1,5 +1,12 @@
 # IaC Practice: Auto Scaling RTSP Server with Ansible & Lambda
 
+## 注意: LambdaのENI削除について
+
+AWS LambdaをVPC内で利用した場合、Lambda関数の削除後もENI（Elastic Network Interface）がしばらく残ることがあります。これはAWS側の仕様であり、TerraformではENI自体を直接削除・制御できません。
+ENIはLambda関数の削除完了後、AWSが自動的に削除しますが、数分～十数分程度の遅延が発生する場合があります。ENIが残っている間は、関連するセキュリティグループ（SG）の削除もブロックされることがあります。
+どうしてもENIが残り続ける場合は、AWSコンソールやCLIで手動削除してください（Description欄にLambda関数名が記載されていれば安全です）。
+Terraform destroy時にSG削除が遅い場合は、ENIがSGを参照していることが主な原因です。Lambda→ENI→SGの削除順序はAWS側の自動制御となります。
+
 ## 概要
 
 このリポジトリは、Terraform・Ansible・AWS Lambda・GitHub Actionsを用いて、  
@@ -17,7 +24,6 @@ Auto Scalingで起動したEC2にRTSPサーバ（MediaMTX）を自動構成す�
 
 ## ディレクトリ構成
 
-```
 ```
 .
 ├── .github/workflows/upload_to_bastion.yml   # CI/CDワークフロー
@@ -94,9 +100,9 @@ Auto Scalingで起動したEC2にRTSPサーバ（MediaMTX）を自動構成す�
    ```sh
    cd terraform/modules/lambda_ec2_launch_ansible_trigger
    bash lambda_build.sh
-   # build/ ディレクトリに依存ライブラリとlambda_function.pyが展開されます
-   # lambda_layer.zipも自動生成されます
    ```
+   build/ ディレクトリに依存ライブラリとlambda_function.pyが展開されます
+   lambda_layer.zipも自動生成されます
 
 2. **Terraformでインフラ構築**
 
@@ -124,16 +130,36 @@ Auto Scalingで起動したEC2にRTSPサーバ（MediaMTX）を自動構成す�
 - Lambda ZIPには`lambda_function.py`と依存ライブラリ（build/配下）が含まれている必要があります。
 - DockerfileでENTRYPOINTを`/bin/bash`に変更しているため、Lambdaのカスタム実行やデバッグが容易です。
 
+
 ## 運用・トラブルシュートのポイント
 
-- EC2のuser_dataでIMDSv2（インスタンスメタデータサービスv2）必須の場合、トークン取得によるインスタンスID取得が必要です。
+- **TerraformのSecurity Group管理方針**
+  - SG本体（aws_security_group）にはタグ・名前のみを定義し、すべての許可ルールはaws_security_group_ruleで分離管理しています。
+  - これによりapplyごとにSGルールが変化する冪等性の問題を防止しています。
+  - SG本体とSGルールの重複定義はエラーの原因となるため、必ず分離してください。
+
+- **SGルールの履歴確認方法**
+  - AWSコンソールのCloudTrailで「AuthorizeSecurityGroupIngress」「RevokeSecurityGroupIngress」イベントを検索することで、SGルールの追加・削除履歴を確認できます。
+  - CLI例: `aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=AuthorizeSecurityGroupIngress`
+
+- **EC2のuser_dataでIMDSv2（インスタンスメタデータサービスv2）必須の場合、トークン取得によるインスタンスID取得が必要です。**
   - 例: `TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60")`
         `INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)`
-- Auto Scaling Groupでuser_dataを更新した場合は、Launch Templateの新バージョンがASGに反映されているか確認し、既存インスタンスは入れ替えが必要です。
-- LambdaトリガーはEC2のcloud-init（user_data）と起動時のsystemdで自作スクリプトから直接呼び出す方式です。EventBridgeは利用していません。
-- IAMロールには`lambda:InvokeFunction`権限が必要です。
-- Lambdaの実行結果は`/var/log/user-data.log`や`/tmp/lambda_output.json`で確認できます。
-- AWSコンソールの反映遅延やキャッシュに注意し、apply後は数分待ってから確認してください。
+
+- **Auto Scaling Groupでuser_dataを更新した場合は、Launch Templateの新バージョンがASGに反映されているか確認し、既存インスタンスは入れ替えが必要です。**
+
+- **LambdaトリガーはEC2のcloud-init（user_data）と起動時のsystemdで自作スクリプトから直接呼び出す方式です。EventBridgeは利用していません。**
+
+- **IAMロールには`lambda:InvokeFunction`権限が必要です。**
+
+- **Lambdaの実行結果は`/var/log/user-data.log`や`/tmp/lambda_output.json`で確認できます。**
+
+- **AWSコンソールの反映遅延やキャッシュに注意し、apply後は数分待ってから確認してください。**
+
+- **冪等性・トラブル時のチェックポイント**
+  - SGルールがapplyごとに変化する場合は、SG本体とSGルールの重複定義がないか確認してください。
+  - AWSコンソールやCLIで手動編集が入っていないか、CloudTrailで履歴を確認してください。
+  - Terraform stateファイルの不整合が疑われる場合は`terraform refresh`で最新状態を取得してください。
 
 ## ライセンス
 

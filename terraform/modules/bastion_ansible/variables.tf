@@ -35,3 +35,8 @@ variable "iam_instance_profile" {
   description = "IAM instance profile name for bastion"
   type        = string
 }
+
+variable "s3_bucket" {
+  description = "S3バケット名（dev.ymlから取得）"
+  type        = string
+}
